@@ -28,7 +28,7 @@ class LlamaCppAIAssistant(BaseAIAssistant):
             chat_handler=chat_handler,
             n_ctx=self.config.get("n_ctx", 2048),
             n_parts=self.config.get("n_parts", -1),
-            n_gpu_layers=self.config.get("n_gpu_layers", 0),
+            n_gpu_layers=self.args.n_gpu_layers,
             seed=self.config.get("seed", -1),
             f16_kv=self.config.get("f16_kv", True),
             logits_all=self.config.get("logits_all", False),

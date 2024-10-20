@@ -19,7 +19,9 @@ DEFAULT_CONFIG = {
         },
         "rwkv": {
             "strategy": "cuda fp16",
-            "chunk-len": "256",
+            "chunk_len": "256",
+        },
+        "llamacpp": {
         },
         "mlx": {
             "repetition_context_size": 20,
