@@ -79,21 +79,3 @@ class LocalGemmaAIAssistant(BaseAIAssistant):
 
         return output, input_tokens, output_tokens, start_time, end_time
 
-    def query(
-        self,
-        user_query: str,
-        history: Union[List[Dict[str, str]], str] = None
-    ) -> Union[List[Dict[str, str]], str]:
-        messages = self._prepare_messages(user_query, history)
-        output, input_tokens, output_tokens, start_time, end_time = self._generate_response(messages)
-        
-        self._print_stats(input_tokens, output_tokens, start_time, end_time)
-
-        if self.is_chat:
-            return (history or []) + [
-                {"role": "user", "content": user_query},
-                {"role": "assistant", "content": output}
-            ]
-        else:
-            return f"{history or ''}{user_query}{output}"
-
