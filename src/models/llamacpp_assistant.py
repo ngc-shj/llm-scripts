@@ -69,20 +69,8 @@ class LlamaCppAIAssistant(BaseAIAssistant):
 
         end_time = time.time()
 
-        input_tokens = len(self.model.tokenize(prompt.encode('utf-8')))
-        output_tokens = len(self.model.tokenize(generated_text.encode('utf-8')))
+        input_tokens = len(self.tokenizer.tokenize(prompt.encode('utf-8')))
+        output_tokens = len(self.tokenizer.tokenize(generated_text.encode('utf-8')))
 
         return generated_text, input_tokens, output_tokens, start_time, end_time
-
-    def _generate_chat_prompt(self, messages):
-        prompt = ""
-        for message in messages:
-            if message["role"] == "system":
-                prompt += f"System: {message['content']}\n\n"
-            elif message["role"] == "user":
-                prompt += f"Human: {message['content']}\n\n"
-            elif message["role"] == "assistant":
-                prompt += f"Assistant: {message['content']}\n\n"
-        prompt += "Assistant:"
-        return prompt
 
