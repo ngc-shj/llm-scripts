@@ -12,12 +12,9 @@ class MLXAIAssistant(BaseAIAssistant):
     def _load_model_and_tokenizer(self):
         return load(path_or_hf_repo=self.args.model_path)
 
-    def _get_model_max_tokens(self):
-        return self.model.config.max_position_embeddings
-
     def _generate_response(self, messages: Union[List[Dict[str, str]], str]) -> Tuple[str, int, int, float, float]:
         generation_params = {
-            "temperature": self.config.get("temperature", 0.7),
+            "temp": self.config.get("temperature", 0.7),
             "top_p": self.config.get("top_p", 0.9),
             "max_tokens": self.max_new_tokens,
             "repetition_penalty": self.config.get("repetition_penalty", 1.1),
@@ -33,7 +30,7 @@ class MLXAIAssistant(BaseAIAssistant):
         else:
             prompt = messages
 
-        input_tokens = self.tokenizer.encode(
+        input_ids = self.tokenizer.encode(
             prompt,
             add_special_tokens=True,
             return_tensors="pt"

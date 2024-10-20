@@ -23,8 +23,8 @@ def parse_arguments():
     parser.add_argument("--chunk-len", type=int, default=256, help="Chunk length for RWKV generation")
     
     # llama.cpp specific arguments
-    parser.add_argument("--ggml-model-path", type=str, required=True, help="Path to the GGML model directory")
-    parser.add_argument("--ggml-model-file", type=str, required=True, help="GGML model file name")
+    parser.add_argument("--ggml-model-path", type=str, help="Path to the GGML model directory")
+    parser.add_argument("--ggml-model-file", type=str, help="GGML model file name")
     parser.add_argument("--n-ctx", type=int, default=2048, help="Context size for llama.cpp")
     parser.add_argument("--n-gpu-layers", type=int, default=0, help="Number of GPU layers for llama.cpp")
     parser.add_argument("--n-threads", type=int, default=2, help="Number of threads for llama.cpp")
