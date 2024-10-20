@@ -3,144 +3,151 @@ import os
 import argparse
 from huggingface_hub import hf_hub_download
 from llama_cpp import Llama, llama_chat_format
-from typing import List, Dict
+from typing import List, Dict, Union
 import time
 
-# argv
-parser = argparse.ArgumentParser()
-parser.add_argument("--model-path", type=str, default=None)
-parser.add_argument("--ggml-model-path", type=str, default=None)
-parser.add_argument("--ggml-model-file", type=str, default=None)
-parser.add_argument("--no-chat", action='store_true')
-parser.add_argument("--no-use-system-prompt", action='store_true')
-parser.add_argument("--max-tokens", type=int, default=256)
-parser.add_argument("--n-ctx", type=int, default=2048)
-parser.add_argument("--n-threads", type=int, default=1)
-parser.add_argument("--n-gpu-layers", type=int, default=-1)
+class LlamaAIAssistant:
+    DEFAULT_SYSTEM_PROMPT = "あなたは誠実で優秀な日本人のアシスタントです。"
 
-args = parser.parse_args(sys.argv[1:])
+    def __init__(self, args):
+        self.args = args
+        self.model, self.chat_formatter, self.chat_handler = self._load_model_and_handlers()
+        self.is_chat = not args.no_chat
+        self.use_system_prompt = not args.no_use_system_prompt
 
-## check and set args
-if args.model_path == None:
-    exit()
-if args.ggml_model_path == None:
-    exit()
-if args.ggml_model_file == None:
-    exit()
+    def _load_model_and_handlers(self):
+        local_model_path = os.path.join(self.args.ggml_model_path, self.args.ggml_model_file)
+        if os.path.isfile(local_model_path):
+            ggml_model_path = local_model_path
+        else:
+            ggml_model_path = hf_hub_download(
+                self.args.ggml_model_path,
+                filename=self.args.ggml_model_file
+            )
 
-model_id = args.model_path
-is_chat = not args.no_chat
-use_system_prompt = not args.no_use_system_prompt
-max_new_tokens = args.max_tokens
-n_ctx = args.n_ctx
-n_threads = args.n_threads
-n_gpu_layers = args.n_gpu_layers
+        chat_formatter = llama_chat_format.hf_autotokenizer_to_chat_formatter(self.args.model_path)
+        chat_handler = llama_chat_format.hf_autotokenizer_to_chat_completion_handler(self.args.model_path)
 
-## Check if the GGUF model exists locally, if not download it
-local_model_path = os.path.join(args.ggml_model_path, args.ggml_model_file)
-if os.path.isfile(local_model_path):
-    ggml_model_path = local_model_path
-else:
-    ## Download the GGUF model
-    ggml_model_path = hf_hub_download(
-        args.ggml_model_path,
-        filename=args.ggml_model_file
-    )
+        model = Llama(
+            model_path=ggml_model_path,
+            chat_handler=chat_handler,
+            n_ctx=self.args.n_ctx,
+            n_threads=self.args.n_threads,
+            n_gpu_layers=self.args.n_gpu_layers
+        )
 
-# Instantiate chat format and handler
-chat_formatter = llama_chat_format.hf_autotokenizer_to_chat_formatter(model_id)
-chat_handler = llama_chat_format.hf_autotokenizer_to_chat_completion_handler(model_id)
+        return model, chat_formatter, chat_handler
 
-## Instantiate model from downloaded file
-model = Llama(
-    model_path=ggml_model_path,
-    chat_handler=chat_handler,
-    n_ctx=n_ctx,
-    n_threads=n_threads,
-    n_gpu_layers=n_gpu_layers
-)
+    def _prepare_messages(
+        self,
+        user_query: str,
+        history: Union[List[Dict[str, str]], str] = None
+    ) -> Union[List[Dict[str, str]], str]:
+        if self.is_chat:
+            messages = (
+                [{"role": "system", "content": self.DEFAULT_SYSTEM_PROMPT}] if self.use_system_prompt else []
+            )
+            messages.extend(history or [])
+            messages.append({"role": "user", "content": user_query})
+        else:
+            system_prompt = (
+                f"{self.DEFAULT_SYSTEM_PROMPT}\n\n" if self.use_system_prompt else ""
+            )
+            messages = f"{system_prompt}{history or ''}{user_query}"
+        return messages
 
-DEFAULT_SYSTEM_PROMPT = "あなたは誠実で優秀な日本人のアシスタントです。"
+    def _generate_response(self, messages: Union[List[Dict[str, str]], str]):
+        generation_params = {
+            "temperature": 0.8,
+            "top_p": 0.95,
+            "top_k": 40,
+            "max_tokens": self.args.max_tokens,
+            "repeat_penalty": 1.1,
+        }
 
-def q(
-    user_query: str,
-    history: List[Dict[str, str]]=None
-) -> List[Dict[str, str]]:
-    # generation params
-    # https://github.com/abetlen/llama-cpp-python/blob/main/llama_cpp/llama.py#L1268
-    generation_params = {
-        #"do_sample": True,
-        "temperature": 0.8,
-        "top_p": 0.95,
-        "top_k": 40,
-        "max_tokens": max_new_tokens,
-        "repeat_penalty": 1.1,
-    }
-    #
-    start = time.time()
-    # messages
-    messages = ""
-    if is_chat:
-        messages = []
-        if use_system_prompt:
-            messages = [
-                {"role": "system", "content": DEFAULT_SYSTEM_PROMPT},
+        if self.is_chat:
+            prompt = self.chat_formatter(messages=messages)
+        else:
+            prompt = messages
+
+        print("--- messages")
+        print(messages)
+        print("--- prompt")
+        print(prompt)
+        print("--- output")
+
+        start_time = time.time()
+
+        if self.is_chat:
+            outputs = self.model.create_chat_completion(
+                messages=messages,
+                **generation_params
+            )
+            output = outputs["choices"][0]["message"]["content"]
+        else:
+            outputs = self.model.create_completion(
+                prompt=prompt,
+                **generation_params
+            )
+            output = outputs["choices"][0]["text"]
+
+        end_time = time.time()
+
+        print(output)
+
+        return output, outputs, start_time, end_time
+
+    def _print_stats(self, outputs, start_time, end_time):
+        input_tokens = outputs["usage"]["prompt_tokens"]
+        output_tokens = outputs["usage"]["completion_tokens"]
+        total_time = end_time - start_time
+        tps = output_tokens / total_time
+        print(f"prompt tokens = {input_tokens:.7g}")
+        print(f"output tokens = {output_tokens:.7g} ({tps:f} [tps])")
+        print(f"   total time = {total_time:f} [s]")
+
+    def query(
+        self,
+        user_query: str,
+        history: Union[List[Dict[str, str]], str] = None
+    ) -> Union[List[Dict[str, str]], str]:
+        messages = self._prepare_messages(user_query, history)
+        output, outputs, start_time, end_time = self._generate_response(messages)
+
+        self._print_stats(outputs, start_time, end_time)
+
+        if self.is_chat:
+            return (history or []) + [
+                {"role": "user", "content": user_query},
+                {"role": "assistant", "content": output}
             ]
-        user_messages = [
-            {"role": "user", "content": user_query}
-        ]
-    else:
-        user_messages = user_query
-    if history:
-        user_messages = history + user_messages
-    messages += user_messages
-    # generation prompts
-    if is_chat:
-        prompt = chat_formatter(messages=messages)
-    else:
-        prompt = messages
-    # debug
-    print("--- messages")
-    print(messages)
-    print("--- prompt")
-    print(prompt)
-    print("--- output")
-    # 推論
-    if is_chat:
-        outputs = model.create_chat_completion(
-            messages=messages,
-            #echo=True,
-            #stream=True,
-            **generation_params
-        )
-        output = outputs["choices"][0]["message"]["content"]
-        user_messages.append(
-            {"role": "assistant", "content": output}
-        )
-    else:
-        outputs = model.create_completion(
-            prompt=prompt,
-            #echo=True,
-            #stream=True,
-            **generation_params
-        )
-        output = outputs["choices"][0]["text"]
-        #for output in outputs:
-        #    print(output["choices"][0]["text"], end='')
-        user_messages += output
-    print(output)
-    end = time.time()
-    ##
-    input_tokens = outputs["usage"]["prompt_tokens"]
-    output_tokens = outputs["usage"]["completion_tokens"]
-    total_time = end - start
-    tps = output_tokens / total_time
-    print(f"prompt tokens = {input_tokens:.7g}")
-    print(f"output tokens = {output_tokens:.7g} ({tps:f} [tps])")
-    print(f"   total time = {total_time:f} [s]")
-    return user_messages
+        else:
+            return f"{history or ''}{user_query}{output}"
 
-print('history = ""')
-print('history = q("ドラえもんとはなにか")')
-print('history = q("続きを教えてください", history)')
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model-path", type=str, required=True, help="Path to the model")
+    parser.add_argument("--ggml-model-path", type=str, required=True, help="Path to the GGML model directory")
+    parser.add_argument("--ggml-model-file", type=str, required=True, help="GGML model file name")
+    parser.add_argument("--no-chat", action='store_true', help="Disable chat mode")
+    parser.add_argument("--no-use-system-prompt", action='store_true', help="Do not use the default system prompt")
+    parser.add_argument("--max-tokens", type=int, default=256, help="Maximum number of tokens to generate")
+    parser.add_argument("--n-ctx", type=int, default=2048, help="Context size")
+    parser.add_argument("--n-threads", type=int, default=1, help="Number of threads to use")
+    parser.add_argument("--n-gpu-layers", type=int, default=-1, help="Number of GPU layers to use")
+    return parser.parse_args(sys.argv[1:])
+
+if __name__ == "__main__":
+    args = parse_arguments()
+    assistant = LlamaAIAssistant(args)
+
+    def q(
+        user_query: str,
+        history: Union[List[Dict[str, str]], str] = None
+    ) -> Union[List[Dict[str, str]], str]:
+        return assistant.query(user_query, history)
+
+    print('history = ""')
+    print('history = q("ドラえもんとはなにか")')
+    print('history = q("続きを教えてください", history)')
 
