@@ -7,8 +7,7 @@ import time
 
 class TransformersAIAssistant(BaseAIAssistant):
     def __init__(self, args, config):
-        self.config = config
-        super().__init__(args)
+        super().__init__(args, config)
 
     def _load_model_and_tokenizer(self):
         tokenizer = AutoTokenizer.from_pretrained(

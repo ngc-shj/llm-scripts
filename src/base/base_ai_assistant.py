@@ -5,12 +5,14 @@ import time
 class BaseAIAssistant(ABC):
     DEFAULT_SYSTEM_PROMPT = "あなたは誠実で優秀な日本人のアシスタントです。"
 
-    def __init__(self, args):
+    def __init__(self, args, config):
         self.args = args
+        self.config = config
         self.model, self.tokenizer = self._load_model_and_tokenizer()
         self.is_chat = self._determine_chat_mode()
         self.use_system_prompt = not args.no_use_system_prompt
         self.max_new_tokens = self._get_max_tokens()
+        self.system_prompt = config.get("system_prompt", DEFAULT_SYSTEM_PROMPT)
 
     @abstractmethod
     def _load_model_and_tokenizer(self):
@@ -32,14 +34,14 @@ class BaseAIAssistant(ABC):
     ) -> Union[List[Dict[str, str]], str]:
         if self.is_chat:
             messages = (
-                [{"role": "system", "content": self.DEFAULT_SYSTEM_PROMPT}]
+                [{"role": "system", "content": self.system_prompt}]
                 if self.use_system_prompt
                 else []
             )
             messages.extend(history or [])
             messages.append({"role": "user", "content": user_query})
         else:
-            system_prompt = f"{self.DEFAULT_SYSTEM_PROMPT}\n\n" if self.use_system_prompt else ""
+            system_prompt = f"{self.system_prompt}\n\n" if self.use_system_prompt else ""
             messages = f"{system_prompt}{history or ''}{user_query}"
         return messages
 

@@ -8,8 +8,7 @@ import time
 
 class LocalGemmaAIAssistant(BaseAIAssistant):
     def __init__(self, args, config):
-        self.config = config
-        super().__init__(args)
+        super().__init__(args, config)
         self.use_system_prompt=False
 
     def _load_model_and_tokenizer(self):

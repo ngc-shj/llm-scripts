@@ -7,8 +7,7 @@ import time
 
 class LlamaCppAIAssistant(BaseAIAssistant):
     def __init__(self, args, config):
-        self.config = config
-        super().__init__(args)
+        super().__init__(args, config)
 
     def _load_model_and_tokenizer(self):
         local_model_path = os.path.join(self.args.ggml_model_path, self.args.ggml_model_file)

@@ -6,8 +6,7 @@ import time
 
 class MLXAIAssistant(BaseAIAssistant):
     def __init__(self, args, config):
-        self.config = config
-        super().__init__(args)
+        super().__init__(args, config)
 
     def _load_model_and_tokenizer(self):
         return load(path_or_hf_repo=self.args.model_path)
