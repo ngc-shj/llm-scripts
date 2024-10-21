@@ -10,11 +10,23 @@ setup(
         "huggingface_hub",
     ],
     extras_require={
-        "vllm": ["vllm"],
-        "rwkv": ["rwkv"],
-        "llama-cpp": ["llama-cpp-python"],
-        "mlx": ["mlx-lm"],
-        "local-gemma": ["local-gemma[cuda]"],
+        "vllm": [
+            "accelerate",
+            "vllm",
+        ],
+        "rwkv": [
+            "rwkv",
+        ],
+        "llama-cpp": [
+            "llama-cpp-python",
+        ],
+        "mlx": [
+            "mlx-lm",
+        ],
+        "local-gemma": [
+            "accelerate",
+            "local-gemma[cuda]",
+        ],
         "all": [
             "vllm",
             "rwkv",
