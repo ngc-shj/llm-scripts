@@ -33,6 +33,10 @@ setup(
         "huggingface_hub",
     ],
     extras_require={
+        "transformers": [
+            "accelerate",
+            "bitsandbytes",
+        ],
         "vllm": [
             "vllm",
         ],

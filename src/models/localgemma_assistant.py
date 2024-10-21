@@ -14,14 +14,9 @@ class LocalGemmaAIAssistant(BaseAIAssistant):
     def _load_model_and_tokenizer(self):
         tokenizer = AutoTokenizer.from_pretrained(
             self.args.tokenizer_path or self.args.model_path,
-            model_max_length=self.config.get("model_max_length", 8192),
             trust_remote_code=True
         )
         
-        if tokenizer.pad_token is None:
-            if tokenizer.eos_token is not None:
-                tokenizer.pad_token = tokenizer.eos_token
-
         model = LocalGemma2ForCausalLM.from_pretrained(
             self.args.model_path,
             torch_dtype=torch.bfloat16,
@@ -31,6 +26,14 @@ class LocalGemmaAIAssistant(BaseAIAssistant):
             trust_remote_code=True,
         )
         
+        # Adjusting tokenizer values.
+        if tokenizer.pad_token is None:
+            if tokenizer.eos_token is not None:
+                tokenizer.pad_token = tokenizer.eos_token
+
+        if tokenizer.model_max_length > model.config.max_position_embeddings:
+            tokenizer.model_max_length = model.config.max_position_embeddings
+
         return model, tokenizer
 
     def _get_model_max_tokens(self):
