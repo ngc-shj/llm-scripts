@@ -25,7 +25,11 @@ class BaseAIAssistant(ABC):
     def _get_model_max_tokens(self):
         return 4096  # Default value, override in subclasses if necessary
 
-    def _prepare_messages(self, user_query: str, history: Union[List[Dict[str, str]], str] = None) -> Union[List[Dict[str, str]], str]:
+    def _prepare_messages(
+        self,
+        user_query: str,
+        history: Union[List[Dict[str, str]], str] = None
+    ) -> Union[List[Dict[str, str]], str]:
         if self.is_chat:
             messages = (
                 [{"role": "system", "content": self.DEFAULT_SYSTEM_PROMPT}]
@@ -40,7 +44,10 @@ class BaseAIAssistant(ABC):
         return messages
 
     @abstractmethod
-    def _generate_response(self, messages: Union[List[Dict[str, str]], str]) -> Tuple[str, int, int, float, float]:
+    def _generate_response(
+        self,
+        messages: Union[List[Dict[str, str]], str]
+    ) -> Tuple[str, int, int, float, float]:
         pass
 
     def _print_stats(self, input_tokens: int, output_tokens: int, start_time: float, end_time: float):
