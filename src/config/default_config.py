@@ -15,6 +15,8 @@ DEFAULT_CONFIG = {
             "gpu_memory_utilization": 0.7,
         },
         "localgemma": {
+            "device_map": "auto",
+            "torch_dtype": "bfloat16",
             "preset": "auto",
         },
         "rwkv": {

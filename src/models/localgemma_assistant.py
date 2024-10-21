@@ -2,6 +2,7 @@ import torch
 from transformers import AutoTokenizer, TextStreamer
 from local_gemma import LocalGemma2ForCausalLM
 from src.base import BaseAIAssistant
+from src.utils.torch_utils import get_torch_dtype
 from typing import List, Dict, Union, Tuple
 import time
 
@@ -19,7 +20,7 @@ class LocalGemmaAIAssistant(BaseAIAssistant):
         
         model = LocalGemma2ForCausalLM.from_pretrained(
             self.args.model_path,
-            torch_dtype=torch.bfloat16,
+            torch_dtype=get_torch_dtype(self.config.get("torch_dtype", "float32")),
             device_map=self.config.get("device_map", "auto"),
             preset=self.config.get("preset", "auto"),
             low_cpu_mem_usage=True,

@@ -1,6 +1,7 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextStreamer
 from src.base import BaseAIAssistant
+from src.utils.torch_utils import get_torch_dtype
 from typing import List, Dict, Union, Tuple
 import time
 
@@ -17,7 +18,7 @@ class TransformersAIAssistant(BaseAIAssistant):
         
         model = AutoModelForCausalLM.from_pretrained(
             self.args.model_path,
-            torch_dtype=torch.bfloat16,
+            torch_dtype=get_torch_dtype(self.config.get("torch_dtype", "float32")),
             device_map=self.config.get("device_map", "auto"),
             low_cpu_mem_usage=True,
             trust_remote_code=True
