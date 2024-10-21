@@ -21,7 +21,7 @@ DEFAULT_CONFIG = {
         },
         "rwkv": {
             "strategy": "cuda fp16",
-            "chunk_len": "256",
+            "chunk_len": 256,
         },
         "llamacpp": {
         },
