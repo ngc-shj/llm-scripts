@@ -34,7 +34,6 @@ setup(
     ],
     extras_require={
         "vllm": [
-            "accelerate",
             "vllm",
         ],
         "rwkv": [
@@ -55,6 +54,7 @@ setup(
             "rwkv",
             "llama-cpp-python",
             "mlx-lm",
+            "accelerate",
             "local-gemma[cuda]",
         ],
     },

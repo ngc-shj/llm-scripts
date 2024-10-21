@@ -12,7 +12,7 @@ def main():
     config = get_config("gemma")
     assistant = LocalGemmaAIAssistant(args, config)
 
-    print('Welcome to the Gemma AI Assistant!')
+    print('Welcome to the Local Gemma AI Assistant!')
     print('Type "exit" to end the conversation.')
 
     history = []

@@ -14,6 +14,7 @@ class LocalGemmaAIAssistant(BaseAIAssistant):
     def _load_model_and_tokenizer(self):
         tokenizer = AutoTokenizer.from_pretrained(
             self.args.tokenizer_path or self.args.model_path,
+            model_max_length=self.config.get("model_max_length", 8192),
             trust_remote_code=True
         )
         

@@ -15,6 +15,7 @@ DEFAULT_CONFIG = {
             "gpu_memory_utilization": 0.7,
         },
         "localgemma": {
+            "model_max_length": 8192,
             "preset": "auto",
         },
         "rwkv": {

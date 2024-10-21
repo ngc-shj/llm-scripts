@@ -34,8 +34,8 @@ if is_package_installed("mlx"):
     __all__.append("MLXAIAssistant")
 
 # Local-Gemma
-if is_package_installed("local-gemma[cuda]"):
-    from .localgemma_assistant import GemmaAIAssistant
+if is_package_installed("local_gemma"):
+    from .localgemma_assistant import LocalGemmaAIAssistant
     __all__.append("GemmaAIAssistant")
 
 # Print available assistants for debugging
