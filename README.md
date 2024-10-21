@@ -111,7 +111,7 @@ You can install additional backends by specifying them as extras:
 
 You can also combine multiple backends in a single installation command:
 ```
-pip install .[vllm,rwkv]
+pip install ."[vllm,rwkv]"
 ```
 
 Note: Some backends may require additional system-level dependencies or CUDA installations. Please refer to their respective documentation for detailed instructions.
