@@ -23,7 +23,7 @@ class TransformersAIAssistant(BaseAIAssistant):
             trust_remote_code=True
         )
         
-        # Adjusting tokenizer values.
+        # Ensure tokenizer settings align with model configuration
         if tokenizer.pad_token is None:
             if tokenizer.eos_token is not None:
                 tokenizer.pad_token = tokenizer.eos_token
