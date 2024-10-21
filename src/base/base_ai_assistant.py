@@ -3,7 +3,7 @@ from typing import List, Dict, Union, Tuple
 import time
 
 class BaseAIAssistant(ABC):
-    DEFAULT_SYSTEM_PROMPT = "あなたは誠実で優秀な日本人のアシスタントです。"
+    DEFAULT_SYSTEM_PROMPT = "You are a helpful, honest, and concise AI assistant."
 
     def __init__(self, args, config):
         self.args = args
@@ -12,7 +12,7 @@ class BaseAIAssistant(ABC):
         self.is_chat = self._determine_chat_mode()
         self.use_system_prompt = not args.no_use_system_prompt
         self.max_new_tokens = self._get_max_tokens()
-        self.system_prompt = config.get("system_prompt", DEFAULT_SYSTEM_PROMPT)
+        self.system_prompt = config.get("system_prompt", self.DEFAULT_SYSTEM_PROMPT)
 
     @abstractmethod
     def _load_model_and_tokenizer(self):
